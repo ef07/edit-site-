@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ebi code</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/markdown/markdown.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        .CodeMirror { height: 100%; font-family: 'Consolas', monospace; font-size: 14px; }
+        .CodeMirror { border-bottom-left-radius: 0.5rem; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        
+        .tab-active { border-bottom: 2px solid #ef4444; color: #fff; background-color: #1e293b; }
+        .tab-inactive { color: #94a3b8; border-bottom: 2px solid transparent; }
+        .tab-inactive:hover { color: #cbd5e1; background-color: #1e293b; }
+
+        .sub-tab-active { background-color: #334155; color: #fff; border-top: 2px solid #ef4444; }
+        .sub-tab-inactive { background-color: #1e293b; color: #94a3b8; }
+        .sub-tab-inactive:hover { background-color: #273548; }
+
+        .dropdown-menu { transform-origin: top right; transition: all 0.2s ease-out; }
+        .dropdown-menu.hidden { transform: scale(0.95); opacity: 0; pointer-events: none; }
+        .dropdown-menu:not(.hidden) { transform: scale(1); opacity: 1; pointer-events: auto; }
+        
+        .console-line { font-family: monospace; padding: 2px 0; border-bottom: 1px solid #333; }
+        .console-log { color: #e2e8f0; }
+        .console-error { color: #ef4444; }
+        .console-warn { color: #f59e0b; }
+        .console-info { color: #3b82f6; }
+
+        /* ロゴのアニメーション */
+        @keyframes swim {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-2px) rotate(-5deg); }
+            75% { transform: translateY(2px) rotate(5deg); }
+        }
+        .logo-img:hover { animation: swim 0.5s ease-in-out infinite; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <header class="bg-slate-900 border-b border-slate-700 flex-none z-10">
+        <div class="flex items-center justify-between px-4">
+            <div class="flex items-center gap-3 py-3 group cursor-default">
+                <!-- アイコン画像 -->
+                <img src="IMG_2688.jpg" alt="Ebi Icon" class="logo-img h-10 w-10 object-cover rounded-full border-2 border-slate-700 bg-white shadow-lg shadow-red-500/20" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB5PSI1MCUiIHg9IjUwJSIgZHk9Ii4zZW0iIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iODAiPvCfpJw8L3RleHQ+PC9zdmc+'">
+                <!-- ロゴデザイン変更箇所 -->
+                <h1 id="header-title" class="font-black text-2xl tracking-wide italic text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 drop-shadow-sm" style="font-family: 'Arial Black', sans-serif;">
+                    Ebi code
+                </h1>
+            </div>
+            <div class="flex space-x-1">
+                <button onclick="switchTab('editor')" id="btn-editor" class="tab-active px-4 py-3 font-medium transition-colors duration-200 flex items-center gap-2 rounded-t-lg">
+                    <i class="fas fa-code"></i> <span data-i18n="editorTab" class="ml-1">エディター</span>
+                </button>
+                <button onclick="switchTab('encryptor')" id="btn-encryptor" class="tab-inactive px-4 py-3 font-medium transition-colors duration-200 flex items-center gap-2 rounded-t-lg">
+                    <i class="fas fa-lock"></i> <span data-i18n="encryptorTab" class="ml-1">暗号化設定</span>
+                </button>
+            </div>
+            <div class="flex items-center space-x-2">
+                <select id="language-selector" onchange="setLanguage(this.value)" class="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 p-2.5">
+                    <option value="ja">日本語</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow relative overflow-hidden bg-slate-800">
+
+        <div id="tab-editor" class="absolute inset-0 flex flex-col md:flex-row h-full">
+            <div id="editor-container" class="w-full md:w-1/2 flex flex-col border-r border-slate-700 transition-all duration-300">
+                
+                <div class="bg-slate-900 px-4 py-2 flex justify-between items-center text-xs text-slate-400 border-b border-slate-700 h-10 flex-none relative z-20">
+                    <div class="flex items-center">
+                        <span data-i18n="sourceCodeTitle"><i class="fas fa-file-code mr-1"></i> Source Code</span>
+                        <button onclick="runCode()" class="ml-3 bg-green-600 hover:bg-green-500 text-white px-2 py-0.5 rounded flex items-center gap-1 transition-colors text-[10px] font-bold shadow">
+                            <i class="fas fa-play"></i> <span data-i18n="run">実行</span>
+                        </button>
+                    </div>
+                    <div class="flex space-x-2 items-center">
+                        <button onclick="copyCombinedToClipboard()" class="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors">
+                            <i class="fas fa-clipboard"></i> <span data-i18n="copyAll">全コードコピー</span>
+                        </button>
+                        <div class="relative">
+                            <button onclick="toggleSaveMenu()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded flex items-center gap-2 transition-colors">
+                                <i class="fas fa-download"></i> <span data-i18n="saveMenu">保存</span> <i class="fas fa-chevron-down text-[10px]"></i>
+                            </button>
+                            <div id="saveMenuDropdown" class="hidden absolute right-0 mt-2 w-64 bg-slate-800 border border-slate-600 rounded-md shadow-lg py-1 z-50 dropdown-menu">
+                                <button onclick="downloadCurrentFile(false)" class="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">
+                                    <i class="far fa-file-code w-5"></i> <span id="download-raw-text">現在のファイル (html)</span>
+                                </button>
+                                <button onclick="downloadCurrentFile(true)" class="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">
+                                    <i class="fas fa-file-code w-5"></i> <span data-i18n="downloadCombined">統合版HTML (Web)</span>
+                                </button>
+                                <button onclick="downloadSplitZip()" class="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">
+                                    <i class="fas fa-file-archive w-5"></i> <span data-i18n="downloadSplit">全ファイル (.zip)</span>
+                                </button>
+                            </div>
+                        </div>
+                        <button onclick="togglePreview()" id="previewToggleBtn" class="bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors">
+                            <i class="fas fa-columns"></i> <span id="previewToggleText" data-i18n="previewToggleON">プレビュー: ON</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex bg-slate-900 border-b border-slate-700 overflow-x-auto no-scrollbar">
+                    <button onclick="switchFile('html')" id="tab-html" class="sub-tab-active min-w-[70px] px-3 py-2 text-xs font-bold transition-colors whitespace-nowrap"><i class="fab fa-html5 text-orange-500 mr-1"></i>HTML</button>
+                    <button onclick="switchFile('css')" id="tab-css" class="sub-tab-inactive min-w-[70px] px-3 py-2 text-xs font-bold transition-colors whitespace-nowrap"><i class="fab fa-css3-alt text-blue-500 mr-1"></i>CSS</button>
+                    <button onclick="switchFile('js')" id="tab-js" class="sub-tab-inactive min-w-[70px] px-3 py-2 text-xs font-bold transition-colors whitespace-nowrap"><i class="fab fa-js text-yellow-400 mr-1"></i>JS</button>
+                    <button onclick="switchFile('md')" id="tab-md" class="sub-tab-inactive min-w-[70px] px-3 py-2 text-xs font-bold transition-colors whitespace-nowrap"><i class="fab fa-markdown text-white mr-1"></i>MD</button>
+                </div>
+
+                <div id="editor-wrappers" class="flex-grow overflow-hidden relative bg-[#282a36]">
+                    <div id="wrap-html" class="absolute inset-0 h-full"><textarea id="editorHtml"></textarea></div>
+                    <div id="wrap-css" class="absolute inset-0 h-full hidden"><textarea id="editorCss"></textarea></div>
+                    <div id="wrap-js" class="absolute inset-0 h-full hidden"><textarea id="editorJs"></textarea></div>
+                    <div id="wrap-md" class="absolute inset-0 h-full hidden"><textarea id="editorMd"></textarea></div>
+                </div>
+            </div>
+
+            <div id="preview-container" class="w-full md:w-1/2 flex flex-col bg-slate-900 h-1/2 md:h-full transition-all duration-300 border-l border-slate-700">
+                
+                <div class="h-[60%] flex flex-col bg-white relative">
+                    <div class="bg-slate-100 px-4 py-2 flex justify-between items-center border-b border-gray-200 text-gray-600 h-10 flex-none">
+                        <span class="text-xs font-bold" data-i18n="previewTitle"><i class="fas fa-desktop mr-1"></i> プレビュー</span>
+                        <button onclick="transferCode()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded transition shadow flex items-center gap-1">
+                            <span data-i18n="toEncryptScreen">暗号化画面へ</span> <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <iframe id="previewFrame" class="w-full h-full border-none bg-white"></iframe>
+                </div>
+
+                <div class="h-[40%] flex flex-col bg-[#1e1e1e] border-t border-slate-700">
+                    <div class="bg-[#2d2d2d] px-4 py-1 flex justify-between items-center text-gray-300 h-8 flex-none">
+                        <span class="text-xs font-bold"><i class="fas fa-terminal mr-1"></i> Console</span>
+                        <button onclick="clearConsole()" class="text-xs hover:text-white"><i class="fas fa-ban"></i></button>
+                    </div>
+                    <div id="console-output" class="flex-grow p-2 overflow-y-auto font-mono text-xs text-slate-300 break-all"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="tab-encryptor" class="absolute inset-0 hidden overflow-y-auto p-4 md:p-8">
+            <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <div class="space-y-6">
+                    <div class="bg-slate-900 rounded-lg p-6 shadow-lg border border-slate-700">
+                        <h2 id="settings-panel-title" class="text-xl font-bold mb-4 text-white flex items-center gap-2">
+                            <i class="fas fa-cogs text-red-400"></i> <span data-i18n="settingsPanel">設定パネル</span>
+                        </h2>
+                        
+                        <div class="mb-4">
+                            <div class="bg-yellow-900/30 border border-yellow-700 text-yellow-200 p-3 rounded mb-4 text-xs">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                <span data-i18n="encryptionWarning">注意: 暗号化機能はHTML (Web形式) のみ正常に動作します。Markdownなどはテキストとして保存されます。</span>
+                            </div>
+
+                            <div class="flex flex-col gap-2 mb-2">
+                                <div class="flex justify-between items-center">
+                                    <label data-i18n="sourceCodeToEncrypt" class="block text-xs font-bold text-slate-400">暗号化するソース (選択中)</label>
+                                    <div class="flex items-center gap-2">
+                                        <span id="fileNameDisplay" class="text-xs text-red-300 truncate max-w-[150px]"></span>
+                                        <label class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-2 py-1 rounded cursor-pointer transition flex items-center gap-1 border border-slate-600">
+                                            <i class="fas fa-upload"></i> <span data-i18n="uploadFile">読込</span>
+                                            <input type="file" id="fileInput" class="hidden" accept=".html,.htm,.txt,.js,.css,.md">
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="manipulateSource('select')" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 py-1 rounded flex-1 transition"><i class="fas fa-check-square mr-1"></i> <span data-i18n="selectAll">全選択</span></button>
+                                    <button onclick="manipulateSource('clear')" class="bg-red-900/50 hover:bg-red-800 text-red-200 text-xs px-3 py-1 rounded flex-1 transition border border-red-900"><i class="fas fa-trash-alt mr-1"></i> <span data-i18n="clear">クリア</span></button>
+                                </div>
+                            </div>
+                            <textarea id="encryptSource" class="w-full h-24 bg-slate-800 text-slate-200 p-3 rounded border border-slate-600 focus:border-red-500 font-mono text-xs"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-slate-800 p-4 rounded border border-slate-700">
+                                <label class="block text-sm font-bold text-slate-300 mb-3 pb-1 border-b border-slate-600">
+                                    <i class="fas fa-key text-yellow-400"></i> <span data-i18n="lockMethod" class="ml-1">ロック方法</span>
+                                </label>
+                                <div class="flex items-center gap-3 mb-3">
+                                    <input type="checkbox" id="usePassword" class="w-4 h-4 rounded text-red-600 bg-slate-700 border-slate-500" checked onchange="updateSettingsUI()">
+                                    <label for="usePassword" data-i18n="passwordAuth" class="text-sm text-slate-300 cursor-pointer">パスワード認証</label>
+                                </div>
+                                <div id="passwordSection">
+                                    <input type="password" id="encryptPass" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500" data-i18n-placeholder="passwordPlaceholder" placeholder="設定するパスワード">
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-800 p-4 rounded border border-slate-700">
+                                <label class="block text-sm font-bold text-slate-300 mb-3 pb-1 border-b border-slate-600">
+                                    <i class="fas fa-paint-brush text-pink-400"></i> <span data-i18n="designText" class="ml-1">デザイン文字</span>
+                                </label>
+                                <div class="space-y-2">
+                                    <input type="text" id="customTitle" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white" data-i18n-placeholder="titlePlaceholder" placeholder="タイトル">
+                                    <input type="text" id="customMsg" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white" data-i18n-placeholder="messagePlaceholder" placeholder="メッセージ">
+                                    <input type="text" id="customBtn" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white" data-i18n-placeholder="buttonPlaceholder" placeholder="ボタン文字">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="generateEncryption()" id="generate-button" class="w-full mt-6 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-bold py-3 rounded-lg shadow-lg transition-all transform active:scale-95 flex justify-center items-center gap-2">
+                            <i class="fas fa-file-export"></i> <span data-i18n="generateEncryptedFile">暗号化ファイルを生成</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-slate-900 rounded-lg p-6 shadow-lg border border-slate-700 h-full flex flex-col">
+                        <h2 class="text-xl font-bold mb-2 text-white flex justify-between items-center">
+                            <span><i class="fas fa-code text-green-400 mr-2"></i> <span data-i18n="generatedCodeTitle">生成コード</span></span>
+                            <span id="successMsg" class="text-xs text-green-400 hidden bg-green-900/30 px-2 py-1 rounded" data-i18n="completed">完了!</span>
+                        </h2>
+                        <p id="output-instruction" class="text-xs text-slate-400 mb-2">このコードをすべてコピーして保存してください。</p>
+                        
+                        <textarea id="encryptOutput" readonly class="flex-grow w-full bg-slate-800 text-slate-400 p-4 rounded border border-slate-600 font-mono text-xs mb-4 focus:outline-none break-all whitespace-pre-wrap" style="word-break: break-all;" data-i18n-placeholder="outputPlaceholder"></textarea>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="downloadResult()" id="dlBtn" disabled class="bg-slate-700 text-slate-500 font-bold py-2 rounded cursor-not-allowed transition flex justify-center items-center gap-2">
+                                <i class="fas fa-download"></i> <span data-i18n="download">ダウンロード</span>
+                            </button>
+                            <button onclick="copyResult()" id="cpBtn" disabled class="bg-slate-700 text-slate-500 font-bold py-2 rounded cursor-not-allowed transition flex justify-center items-center gap-2">
+                                <i class="fas fa-copy"></i> <span data-i18n="copy">コピー</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const initialHtml = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+</head>
+<body>
+    <div class="container">
+        <h1>Hello Ebi code!</h1>
+        <p>This is a sample page.</p>
+    </div>
+</body>
+</html>`;
+
+        const initialCss = `body {
+    background-color: #fff1f2;
+    color: #881337;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+.container {
+    text-align: center;
+    padding: 30px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(225, 29, 72, 0.15);
+    border: 2px solid #fda4af;
+}
+h1 { color: #e11d48; }`;
+
+        const initialJs = `console.log("Welcome to Ebi code!");
+const x = 100;
+console.log("Value: " + (x * 3));`;
+        
+        const initialMd = `# Ebi Code Notes
+- Write your ideas here.
+- **Bold** ideas!
+- [Link to Google](https://google.com)`;
+
+        const translations = {
+            ja: {
+                editorTab: "エディター",
+                encryptorTab: "暗号化設定",
+                sourceCodeTitle: "Source Code",
+                previewTitle: "プレビュー",
+                toEncryptScreen: "暗号化画面へ",
+                saveMenu: "保存",
+                downloadRaw: "現在のファイル",
+                downloadCombined: "統合版HTML (Web)",
+                downloadSplit: "全ファイル (.zip)",
+                copyAll: "全コードコピー",
+                selectAll: "全選択",
+                clear: "クリア",
+                run: "実行",
+                previewToggleON: "プレビュー: ON",
+                previewToggleOFF: "プレビュー: OFF",
+                settingsPanel: "設定パネル",
+                sourceCodeToEncrypt: "暗号化するソース (選択中)",
+                uploadFile: "読込",
+                lockMethod: "ロック方法",
+                passwordAuth: "パスワード認証",
+                designText: "デザイン文字",
+                generateEncryptedFile: "暗号化ファイルを生成",
+                generatedCodeTitle: "生成コード",
+                encryptionWarning: "注意: 暗号化機能はHTML (Web形式) のみ正常に動作します。Markdownなどはテキストとして保存されます。",
+                outputInstruction: "このコードをすべてコピーして、HTMLファイル（例: <code>secret.html</code>）として保存してください。",
+                download: "ダウンロード",
+                copy: "コピー",
+                completed: "完了!",
+                passwordPlaceholder: "設定するパスワード",
+                titlePlaceholder: "タイトル (例: 限定公開ページ)",
+                messagePlaceholder: "メッセージ (例: パスワードを入力)",
+                buttonPlaceholder: "ボタン文字 (例: 解除)",
+                outputPlaceholder: "ここに生成されたコードが表示されます...",
+                emptySource: "ソースが空です",
+                emptyPassword: "パスワードを入力してください",
+                error: "エラー:",
+                copied: "コピーしました！"
+            },
+            en: {
+                editorTab: "Editor",
+                encryptorTab: "Encryption Settings",
+                sourceCodeTitle: "Source Code",
+                previewTitle: "Preview",
+                toEncryptScreen: "Go to Encryption",
+                saveMenu: "Save",
+                downloadRaw: "Current File",
+                downloadCombined: "Combined HTML (Web)",
+                downloadSplit: "All Files (.zip)",
+                copyAll: "Copy All Code",
+                selectAll: "Select All",
+                clear: "Clear",
+                run: "Run",
+                previewToggleON: "Preview: ON",
+                previewToggleOFF: "Preview: OFF",
+                settingsPanel: "Settings Panel",
+                sourceCodeToEncrypt: "Source to Encrypt (Current)",
+                uploadFile: "Load",
+                lockMethod: "Lock Method",
+                passwordAuth: "Password Authentication",
+                designText: "Design Text",
+                generateEncryptedFile: "Generate Encrypted File",
+                generatedCodeTitle: "Generated Code",
+                encryptionWarning: "Note: Encryption only works for HTML (Web). Markdown will be saved as text.",
+                outputInstruction: "Copy all of this code and save it as an HTML file (e.g., <code>secret.html</code>).",
+                download: "Download",
+                copy: "Copy",
+                completed: "Completed!",
+                passwordPlaceholder: "Set your password",
+                titlePlaceholder: "Title (e.g., Exclusive Page)",
+                messagePlaceholder: "Message (e.g., Enter password)",
+                buttonPlaceholder: "Button Text (e.g., Unlock)",
+                outputPlaceholder: "Generated code will appear here...",
+                emptySource: "Source is empty",
+                emptyPassword: "Please enter a password",
+                error: "Error:",
+                copied: "Copied!"
+            }
+        };
+
+        let currentLang = 'ja';
+        let cmHtml, cmCss, cmJs, cmMd;
+        let isPreviewVisible = true;
+        let activeFile = 'html';
+
+        window.onload = function() {
+            const commonOpts = { theme: "dracula", lineNumbers: true, lineWrapping: true };
+            cmHtml = CodeMirror.fromTextArea(document.getElementById("editorHtml"), { mode: "htmlmixed", autoCloseTags: true, ...commonOpts });
+            cmCss = CodeMirror.fromTextArea(document.getElementById("editorCss"), { mode: "css", ...commonOpts });
+            cmJs = CodeMirror.fromTextArea(document.getElementById("editorJs"), { mode: "javascript", ...commonOpts });
+            cmMd = CodeMirror.fromTextArea(document.getElementById("editorMd"), { mode: "markdown", ...commonOpts });
+
+            cmHtml.setValue(initialHtml);
+            cmCss.setValue(initialCss);
+            cmJs.setValue(initialJs);
+            cmMd.setValue(initialMd);
+
+            [cmHtml, cmCss, cmJs, cmMd].forEach(cm => {
+                cm.on("change", () => { if(isPreviewVisible) updatePreview(); });
+            });
+
+            updatePreview();
+            
+            const savedLang = localStorage.getItem('appLang') || 'ja';
+            currentLang = savedLang;
+            document.getElementById('language-selector').value = savedLang;
+            updateUI(savedLang);
+
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+            
+            window.onclick = function(event) {
+                if (!event.target.closest('.relative')) {
+                    const dropdowns = document.getElementsByClassName("dropdown-menu");
+                    for (let i = 0; i < dropdowns.length; i++) {
+                        dropdowns[i].classList.add('hidden');
+                    }
+                }
+            }
+        };
+
+        function switchFile(type) {
+            activeFile = type;
+            ['html', 'css', 'js', 'md'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const wrap = document.getElementById(`wrap-${t}`);
+                if (t === type) {
+                    btn.classList.replace('sub-tab-inactive', 'sub-tab-active');
+                    wrap.classList.remove('hidden');
+                } else {
+                    btn.classList.replace('sub-tab-active', 'sub-tab-inactive');
+                    wrap.classList.add('hidden');
+                }
+            });
+            if(type === 'html') cmHtml.refresh();
+            if(type === 'css') cmCss.refresh();
+            if(type === 'js') cmJs.refresh();
+            if(type === 'md') cmMd.refresh();
+            
+            updateSaveMenuLabel();
+            if(isPreviewVisible) updatePreview();
+        }
+
+        function updateSaveMenuLabel() {
+            const ext = activeFile;
+            const el = document.getElementById('download-raw-text');
+            if(el) {
+                if (currentLang === 'ja') {
+                    el.textContent = `現在のファイル (.${ext})`;
+                } else {
+                    el.textContent = `Current File (.${ext})`;
+                }
+            }
+        }
+
+        function switchTab(tab) {
+            const e = document.getElementById('tab-editor'), en = document.getElementById('tab-encryptor');
+            const be = document.getElementById('btn-editor'), ben = document.getElementById('btn-encryptor');
+            
+            if (tab === 'editor') {
+                e.classList.remove('hidden'); en.classList.add('hidden');
+                be.className="tab-active px-4 py-3 font-medium flex items-center gap-2 rounded-t-lg transition-colors";
+                ben.className="tab-inactive px-4 py-3 font-medium flex items-center gap-2 rounded-t-lg transition-colors";
+                switchFile(activeFile);
+            } else {
+                transferCode();
+                e.classList.add('hidden'); en.classList.remove('hidden');
+                be.className="tab-inactive px-4 py-3 font-medium flex items-center gap-2 rounded-t-lg transition-colors";
+                ben.className="tab-active px-4 py-3 font-medium flex items-center gap-2 rounded-t-lg transition-colors";
+            }
+        }
+
+        function togglePreview() {
+            const ec = document.getElementById('editor-container'), pc = document.getElementById('preview-container');
+            if (isPreviewVisible) {
+                pc.classList.add('hidden'); ec.classList.remove('md:w-1/2'); ec.classList.add('w-full');
+                isPreviewVisible = false;
+            } else {
+                pc.classList.remove('hidden'); ec.classList.remove('w-full'); ec.classList.add('md:w-1/2');
+                isPreviewVisible = true;
+                updatePreview();
+            }
+            document.getElementById('previewToggleText').textContent = isPreviewVisible ? getTranslation('previewToggleON') : getTranslation('previewToggleOFF');
+            setTimeout(() => {
+                switchFile(activeFile);
+            }, 300);
+        }
+
+        function toggleSaveMenu() {
+            document.getElementById("saveMenuDropdown").classList.toggle("hidden");
+        }
+
+        function logToConsole(message, type = 'log') {
+            const consoleDiv = document.getElementById('console-output');
+            const line = document.createElement('div');
+            line.className = 'console-line console-' + type;
+            
+            let output = message;
+            if (typeof message === 'object') {
+                try {
+                    output = JSON.stringify(message, null, 2);
+                } catch(e) {
+                    output = message.toString();
+                }
+            }
+            line.textContent = `> ${output}`;
+            consoleDiv.appendChild(line);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function clearConsole() {
+            document.getElementById('console-output').innerHTML = '';
+        }
+
+        function getWebCombinedContent() {
+            let html = cmHtml.getValue();
+            let css = cmCss.getValue();
+            let js = cmJs.getValue();
+            
+            const consoleScript = `
+                <script>
+                    (function(){
+                        const oldLog = console.log;
+                        const oldError = console.error;
+                        const oldWarn = console.warn;
+                        console.log = function(...args){ 
+                            oldLog.apply(console, args);
+                            window.parent.postMessage({type: 'console', method: 'log', args: args}, '*');
+                        };
+                        console.error = function(...args){ 
+                            oldError.apply(console, args);
+                            window.parent.postMessage({type: 'console', method: 'error', args: args}, '*');
+                        };
+                        console.warn = function(...args){ 
+                            oldWarn.apply(console, args);
+                            window.parent.postMessage({type: 'console', method: 'warn', args: args}, '*');
+                        };
+                    })();
+                <\/script>`;
+
+            if (html.includes('<head>')) {
+                html = html.replace('<head>', '<head>' + consoleScript);
+            } else {
+                html = consoleScript + html;
+            }
+
+            let combined = html;
+            if (css.trim()) combined += `\n<style>\n${css}\n</style>`;
+            if (js.trim()) combined += `\n<script>\n${js}\n<\/script>`;
+            return combined;
+        }
+
+        function getCurrentRawContent() {
+            if(activeFile === 'html') return cmHtml.getValue();
+            if(activeFile === 'css') return cmCss.getValue();
+            if(activeFile === 'js') return cmJs.getValue();
+            if(activeFile === 'md') return cmMd.getValue();
+            return "";
+        }
+
+        function updatePreview() {
+            const f = document.getElementById('previewFrame');
+            window.removeEventListener('message', handleIframeMessage);
+            window.addEventListener('message', handleIframeMessage);
+
+            const d = f.contentDocument || f.contentWindow.document;
+            d.open();
+
+            if (['html', 'css', 'js'].includes(activeFile)) {
+                d.write(getWebCombinedContent());
+            } else if (activeFile === 'md') {
+                const mdText = cmMd.getValue();
+                const htmlContent = `
+                    <!DOCTYPE html><html><head><meta charset="UTF-8">
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
+                    <style>body { box-sizing: border-box; min-width: 200px; max-width: 980px; margin: 0 auto; padding: 45px; } @media (max-width: 767px) { body { padding: 15px; } }</style>
+                    </head><body class="markdown-body">
+                    ${marked.parse(mdText)}
+                    </body></html>`;
+                d.write(htmlContent);
+            }
+            d.close();
+        }
+
+        function handleIframeMessage(event) {
+            if (event.data && event.data.type === 'console') {
+                const msg = event.data.args.join(' ');
+                logToConsole(msg, event.data.method);
+            }
+        }
+
+        function runCode() {
+            clearConsole();
+            logToConsole("Restarting Web Environment...", "info");
+            updatePreview();
+        }
+
+        function transferCode() {
+            if(['html','css','js'].includes(activeFile)) {
+                 document.getElementById('encryptSource').value = getWebCombinedContent();
+            } else {
+                 document.getElementById('encryptSource').value = getCurrentRawContent();
+            }
+        }
+
+        function copyCombinedToClipboard() {
+            let src;
+            if(['html','css','js'].includes(activeFile)) {
+                src = getWebCombinedContent().replace(/<script>\s*\(function\(\)\{.*?\}\)\(\);\s*<\/script>/s, '');
+            } else {
+                src = getCurrentRawContent();
+            }
+
+            if (!src.trim()) { alert(getTranslation('emptySource')); return; }
+            navigator.clipboard.writeText(src).then(() => {
+                const btn = document.querySelector('button[onclick="copyCombinedToClipboard()"]');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> OK!';
+                setTimeout(() => btn.innerHTML = originalHTML, 1500);
+            });
+        }
+
+        function downloadCurrentFile(combined = false) {
+            let src, filename, mime;
+
+            if (combined && ['html','css','js'].includes(activeFile)) {
+                src = getWebCombinedContent().replace(/<script>\s*\(function\(\)\{.*?\}\)\(\);\s*<\/script>/s, '');
+                filename = 'index.html';
+                mime = 'text/html';
+            } else {
+                src = getCurrentRawContent();
+                if(activeFile === 'html') { filename = 'index.html'; mime = 'text/html'; }
+                else if(activeFile === 'css') { filename = 'style.css'; mime = 'text/css'; }
+                else if(activeFile === 'js') { filename = 'script.js'; mime = 'text/javascript'; }
+                else if(activeFile === 'md') { filename = 'readme.md'; mime = 'text/markdown'; }
+            }
+
+            if (!src.trim()) { alert(getTranslation('emptySource')); return; }
+            createDownload(src, filename, mime);
+            document.getElementById("saveMenuDropdown").classList.add("hidden");
+        }
+
+        function downloadSplitZip() {
+            const zip = new JSZip();
+            const h = cmHtml.getValue(), c = cmCss.getValue(), j = cmJs.getValue();
+            const m = cmMd.getValue();
+
+            if (h.trim()) {
+                 let html = h;
+                 if (c.trim() && !html.includes('style.css')) html = html.replace('</head>', '<link rel="stylesheet" href="style.css">\n</head>');
+                 if (j.trim() && !html.includes('script.js')) html = html.replace('</body>', '<script src="script.js"><\/script>\n</body>');
+                 zip.file("index.html", html);
+            }
+            if (c.trim()) zip.file("style.css", c);
+            if (j.trim()) zip.file("script.js", j);
+            if (m.trim()) zip.file("README.md", m);
+
+            zip.generateAsync({type:"blob"}).then(function(content) {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(content);
+                a.download = "project_files.zip";
+                a.click();
+            });
+            document.getElementById("saveMenuDropdown").classList.add("hidden");
+        }
+
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('fileNameDisplay').textContent = file.name;
+            const reader = new FileReader();
+            
+            reader.onload = function(evt) {
+                const content = evt.target.result;
+                const ext = file.name.split('.').pop().toLowerCase();
+
+                if (ext === 'css') { cmCss.setValue(content); switchFile('css'); }
+                else if (ext === 'js') { cmJs.setValue(content); switchFile('js'); }
+                else if (ext === 'md') { cmMd.setValue(content); switchFile('md'); }
+                else { cmHtml.setValue(content); switchFile('html'); }
+                switchTab('editor');
+                alert(ext.toUpperCase() + " タブに読み込みました");
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        }
+
+        function manipulateSource(action) {
+            const el = document.getElementById('encryptSource');
+            if (action === 'clear') {
+                el.value = '';
+                document.getElementById('fileNameDisplay').textContent = '';
+            } else if (action === 'select') {
+                el.select();
+            }
+        }
+
+        function getTranslation(key) {
+            return translations[currentLang][key] || translations['ja'][key] || `[${key}]`;
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('appLang', lang);
+            updateUI(lang);
+        }
+
+        function updateUI(lang) {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[lang][key]) {
+                    el.setAttribute('placeholder', translations[lang][key]);
+                }
+            });
+            document.getElementById('output-instruction').innerHTML = getTranslation('outputInstruction');
+            document.getElementById('previewToggleText').textContent = isPreviewVisible ? getTranslation('previewToggleON') : getTranslation('previewToggleOFF');
+            updateSaveMenuLabel();
+        }
+
+        function updateSettingsUI() {
+            const use = document.getElementById('usePassword').checked;
+            document.getElementById('passwordSection').style.display = use ? 'block' : 'none';
+        }
+
+        function generateEncryption() {
+            const src = document.getElementById('encryptSource').value;
+            const usePass = document.getElementById('usePassword').checked;
+            let pass = document.getElementById('encryptPass').value;
+            
+            const tTitle = document.getElementById('customTitle').value || getTranslation('titlePlaceholder');
+            const tMsg = document.getElementById('customMsg').value || (usePass ? getTranslation('messagePlaceholder') : getTranslation('buttonPlaceholder'));
+            const tBtn = document.getElementById('customBtn').value || (usePass ? getTranslation('buttonPlaceholder') : getTranslation('buttonPlaceholder'));
+
+            if (!src.trim()) { alert(getTranslation('emptySource')); return; }
+            if (usePass && !pass) { alert(getTranslation('emptyPassword')); return; }
+
+            let isAuto = false;
+            if (!usePass) {
+                isAuto = true;
+                pass = Math.random().toString(36).slice(-8);
+            }
+
+            try {
+                const encrypted = CryptoJS.AES.encrypt(src, pass).toString();
+                const output = getTemplate(encrypted, isAuto, isAuto ? pass : '', tTitle, tMsg, tBtn);
+                
+                document.getElementById('encryptOutput').value = output;
+                enableButtons();
+            } catch (e) {
+                alert(getTranslation('error') + " " + e);
+            }
+        }
+
+        function enableButtons() {
+            ['dlBtn', 'cpBtn'].forEach(id => {
+                const b = document.getElementById(id);
+                b.disabled = false;
+                b.classList.remove('bg-slate-700', 'text-slate-500', 'cursor-not-allowed');
+                if(id === 'dlBtn') b.classList.add('bg-green-600', 'hover:bg-green-500', 'text-white');
+                else b.classList.add('bg-blue-600', 'hover:bg-blue-500', 'text-white');
+            });
+            const m = document.getElementById('successMsg');
+            m.classList.remove('hidden'); setTimeout(() => m.classList.add('hidden'), 3000);
+        }
+        
+        function createDownload(content, filename, mimeType) {
+            const blob = new Blob([content], {type: mimeType});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function downloadResult() {
+             const output = document.getElementById('encryptOutput').value;
+             createDownload(output, 'encrypted.html', 'text/html');
+        }
+
+        function copyResult() {
+            const c = document.getElementById('encryptOutput');
+            c.select(); document.execCommand('copy');
+            const msg = getTranslation('copied');
+            const successDiv = document.createElement('div');
+            successDiv.textContent = msg;
+            successDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 10px 20px; border-radius: 8px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: opacity 0.3s ease;';
+            document.body.appendChild(successDiv);
+            setTimeout(() => {
+                successDiv.style.opacity = '0';
+                setTimeout(() => successDiv.remove(), 300);
+            }, 2000);
+        }
+
+        function getTemplate(data, isAuto, autoKey, title, msg, btn) {
+            const inpStyle = isAuto ? 'display:none' : '';
+            return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${title}</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"><\/script>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff; }
+.card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+.icon { font-size: 3rem; margin-bottom: 1rem; }
+h2 { margin: 0 0 1rem; font-size: 1.5rem; font-weight: 700; }
+p { color: #94a3b8; margin-bottom: 2rem; font-size: 0.95rem; }
+input { width: 100%; padding: 12px; margin-bottom: 1rem; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-size: 1rem; outline: none; transition: all 0.2s; }
+input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+button { width: 100%; padding: 12px; background: linear-gradient(to right, #6366f1, #8b5cf6); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: transform 0.1s; }
+button:hover { opacity: 0.9; } button:active { transform: scale(0.98); }
+.error { color: #f87171; font-size: 0.875rem; margin-top: 1rem; display: none; }
+</style>
+</head>
+<body>
+<div class="card" id="loginCard">
+ <div class="icon">🔒</div>
+ <h2>${title}</h2>
+ <p>${msg}</p>
+ <input type="password" id="passInput" placeholder="Password" style="${inpStyle}" onkeypress="if(event.key==='Enter')decrypt()">
+ <button onclick="decrypt()">${btn}</button>
+ <div id="errMsg" class="error">パスワードが正しくありません</div>
+</div>
+<script>
+var encrypted="${data}";
+var auto=${isAuto};
+var autoKey="${autoKey}";
+var errorMsg = "${getTranslation('error')}";
+
+function decrypt() {
+ var p = document.getElementById('passInput');
+ var k = auto ? autoKey : p.value;
+ var err = document.getElementById('errMsg');
+ try {
+  var decrypted = CryptoJS.AES.decrypt(encrypted, k).toString(CryptoJS.enc.Utf8);
+  if (!decrypted) throw new Error("Decryption failed");
+  document.open();
+  document.write(decrypted);
+  document.close();
+ } catch (e) {
+  err.style.display = 'block';
+  if(!auto) { p.value=''; p.focus(); }
+  err.textContent = auto ? errorMsg + " (Internal Key Error)" : "${getTranslation('error')}";
+  console.error(e);
+ }
+}
+<\/script>
+</body>
+</html>`;
+        }
+    </script>
+</body>
+</html>
