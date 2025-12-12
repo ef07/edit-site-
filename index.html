@@ -47,27 +47,16 @@
         .console-error { color: #ef4444; }
         .console-warn { color: #f59e0b; }
         .console-info { color: #3b82f6; }
-        
-        @keyframes swim {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            25% { transform: translateY(-2px) rotate(-5deg); }
-            75% { transform: translateY(2px) rotate(5deg); }
-        }
-        .logo-img:hover { animation: swim 0.5s ease-in-out infinite; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
 
     <header class="bg-slate-900 border-b border-slate-700 flex-none z-10">
         <div class="flex items-center justify-between px-4">
-        <div class="flex items-center gap-8">
-            <div class="flex items-center gap-3 py-3 group cursor-default">
-            
-　　　　　　　　　　<img src="IMG_2688.png" alt="Ebi Icon" class="logo-img h-10 w-10 object-cover rounded-full border-2 border-slate-700 bg-white shadow-lg shadow-red-500/20" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB5PSI1MCUiIHg9IjUwJSIgZHk9Ii4zZW0iIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iODAiPvCfpJw8L3RleHQ+PC9zdmc+'">
+            <div class="flex items-center gap-3 py-3">
                
-                <h1 id="header-title" class="font-black text-2xl tracking-wide italic text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 drop-shadow-sm" style="font-family: 'Arial Black', sans-serif;">
-                    Ebi code
-                </h1>
+                <img src="IMG_2688.png" alt="Ebi Icon" class="h-10 w-10 object-cover rounded-full border-2 border-slate-700 bg-white" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB5PSI1MCUiIHg9IjUwJSIgZHk9Ii4zZW0iIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iODAiPvCfpJw8L3RleHQ+PC9zdmc+'">
+                <h1 id="header-title" class="font-bold text-xl tracking-wide text-white">Ebi code</h1>
             </div>
             <div class="flex space-x-1">
                 <button onclick="switchTab('editor')" id="btn-editor" class="tab-active px-4 py-3 font-medium transition-colors duration-200 flex items-center gap-2 rounded-t-lg">
@@ -106,9 +95,9 @@
                             <button onclick="toggleSaveMenu()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded flex items-center gap-2 transition-colors">
                                 <i class="fas fa-download"></i> <span data-i18n="saveMenu">保存</span> <i class="fas fa-chevron-down text-[10px]"></i>
                             </button>
-                            <div id="saveMenuDropdown" class="hidden absolute right-0 mt-2 w-64 bg-slate-800 border border-slate-600 rounded-md shadow-lg py-1 z-50 dropdown-menu">
+                            <div id="saveMenuDropdown" class="hidden absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-600 rounded-md shadow-lg py-1 z-50 dropdown-menu">
                                 <button onclick="downloadCurrentFile(false)" class="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">
-                                    <i class="far fa-file-code w-5"></i> <span id="download-raw-text">現在のファイル (html)</span>
+                                    <i class="far fa-file-code w-5"></i> <span data-i18n="downloadRaw">現在のファイル (Raw)</span>
                                 </button>
                                 <button onclick="downloadCurrentFile(true)" class="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">
                                     <i class="fas fa-file-code w-5"></i> <span data-i18n="downloadCombined">統合版HTML (Web)</span>
@@ -304,7 +293,7 @@ console.log("Value: " + (x * 3));`;
                 previewTitle: "プレビュー",
                 toEncryptScreen: "暗号化画面へ",
                 saveMenu: "保存",
-                downloadRaw: "現在のファイル",
+                downloadRaw: "現在のファイル (Raw)",
                 downloadCombined: "統合版HTML (Web)",
                 downloadSplit: "全ファイル (.zip)",
                 copyAll: "全コードコピー",
@@ -343,7 +332,7 @@ console.log("Value: " + (x * 3));`;
                 previewTitle: "Preview",
                 toEncryptScreen: "Go to Encryption",
                 saveMenu: "Save",
-                downloadRaw: "Current File",
+                downloadRaw: "Current File (Raw)",
                 downloadCombined: "Combined HTML (Web)",
                 downloadSplit: "All Files (.zip)",
                 copyAll: "Copy All Code",
@@ -435,20 +424,7 @@ console.log("Value: " + (x * 3));`;
             if(type === 'js') cmJs.refresh();
             if(type === 'md') cmMd.refresh();
             
-            updateSaveMenuLabel();
             if(isPreviewVisible) updatePreview();
-        }
-
-        function updateSaveMenuLabel() {
-            const ext = activeFile;
-            const el = document.getElementById('download-raw-text');
-            if(el) {
-                if (currentLang === 'ja') {
-                    el.textContent = `現在のファイル (.${ext})`;
-                } else {
-                    el.textContent = `Current File (.${ext})`;
-                }
-            }
         }
 
         function switchTab(tab) {
@@ -515,6 +491,7 @@ console.log("Value: " + (x * 3));`;
             let css = cmCss.getValue();
             let js = cmJs.getValue();
             
+            // Console interceptor for preview/combined only
             const consoleScript = `
                 <script>
                     (function(){
@@ -594,6 +571,7 @@ console.log("Value: " + (x * 3));`;
         }
 
         function transferCode() {
+            // For encryption, always use combined if in web mode, else raw
             if(['html','css','js'].includes(activeFile)) {
                  document.getElementById('encryptSource').value = getWebCombinedContent();
             } else {
@@ -622,10 +600,12 @@ console.log("Value: " + (x * 3));`;
             let src, filename, mime;
 
             if (combined && ['html','css','js'].includes(activeFile)) {
+                // Combined HTML download
                 src = getWebCombinedContent().replace(/<script>\s*\(function\(\)\{.*?\}\)\(\);\s*<\/script>/s, '');
                 filename = 'index.html';
                 mime = 'text/html';
             } else {
+                // Raw download per tab
                 src = getCurrentRawContent();
                 if(activeFile === 'html') { filename = 'index.html'; mime = 'text/html'; }
                 else if(activeFile === 'css') { filename = 'style.css'; mime = 'text/css'; }
@@ -645,6 +625,7 @@ console.log("Value: " + (x * 3));`;
 
             if (h.trim()) {
                  let html = h;
+                 // Add links if missing
                  if (c.trim() && !html.includes('style.css')) html = html.replace('</head>', '<link rel="stylesheet" href="style.css">\n</head>');
                  if (j.trim() && !html.includes('script.js')) html = html.replace('</body>', '<script src="script.js"><\/script>\n</body>');
                  zip.file("index.html", html);
@@ -717,9 +698,9 @@ console.log("Value: " + (x * 3));`;
                     el.setAttribute('placeholder', translations[lang][key]);
                 }
             });
+            document.getElementById('header-title').textContent = "Ebi code";
             document.getElementById('output-instruction').innerHTML = getTranslation('outputInstruction');
             document.getElementById('previewToggleText').textContent = isPreviewVisible ? getTranslation('previewToggleON') : getTranslation('previewToggleOFF');
-            updateSaveMenuLabel();
         }
 
         function updateSettingsUI() {
