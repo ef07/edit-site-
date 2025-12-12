@@ -23,6 +23,22 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        :root {
+            --bg-color: #42647E; 
+            --text-color: #84A3B8; 
+            --shadow-color: #314a5b; 
+        }
+        
+        .deep-shadow {
+            color: var(--text-color);
+            font-weight: 900; 
+            
+            text-shadow:
+                2px 2px 0 var(--shadow-color),    
+                4px 4px 0 var(--shadow-color),   
+                6px 6px 0 var(--shadow-color),    
+                8px 8px 8px rgba(0, 0, 0, 0.4); 
+        }
         .CodeMirror { height: 100%; font-family: 'Consolas', monospace; font-size: 14px; }
         .CodeMirror { border-bottom-left-radius: 0.5rem; }
         
