@@ -103,6 +103,9 @@
                         <button onclick="runCode()" class="ml-3 bg-green-600 hover:bg-green-500 text-white px-2 py-0.5 rounded flex items-center gap-1 transition-colors text-[10px] font-bold shadow">
                             <i class="fas fa-play"></i> <span data-i18n="run">実行</span>
                         </button>
+                        <button onclick="clearAllCodeWithWarning()" class="ml-2 bg-slate-700 hover:bg-red-900 text-slate-300 hover:text-red-200 px-2 py-0.5 rounded flex items-center gap-1 transition-colors text-[10px] font-bold shadow border border-slate-600 hover:border-red-800" title="Clear All">
+                            <i class="fas fa-trash-alt"></i> <span data-i18n="clearAllEditor">全クリア</span>
+                        </button>
                     </div>
                     <div class="flex space-x-2 items-center">
                         <button onclick="copyCombinedToClipboard()" class="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors">
@@ -267,6 +270,24 @@
 <meta charset="UTF-8">
 </head>
 <body>
+    <div class="holiday-lights">
+        <div class="light-strand"></div>
+        <div class="light-bulb cyan"></div>
+        <div class="light-bulb pink"></div>
+        <div class="light-bulb cyan"></div>
+        <div class="light-bulb green"></div>
+        <div class="light-bulb pink"></div>
+        <div class="light-bulb cyan"></div>
+        <div class="light-bulb green"></div>
+        <div class="light-bulb cyan"></div>
+        <div class="light-bulb pink"></div>
+        <div class="light-bulb cyan"></div>
+        <div class="light-bulb green"></div>
+        <div class="light-bulb pink"></div>
+        <div class="light-bulb cyan"></div>
+        <div class="light-bulb green"></div>
+    </div>
+
     <div class="container">
         <h1>Hello Ebi code!</h1>
         <p>This is a sample page.</p>
@@ -275,27 +296,112 @@
 </html>`;
 
         const initialCss = `body {
-    background-color: #fff1f2;
-    color: #881337;
+    background-color: #0f172a; 
+    color: #e2e8f0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
+    overflow: hidden;
 }
+
 .container {
     text-align: center;
     padding: 30px;
-    background: white;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
     border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(225, 29, 72, 0.15);
-    border: 2px solid #fda4af;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    z-index: 10;
 }
-h1 { color: #e11d48; }`;
+h1 { color: #f472b6; text-shadow: 0 0 10px rgba(244, 114, 182, 0.5); }
+
+.holiday-lights {
+    position: absolute;
+    top: -10px;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    display: flex;
+    justify-content: space-evenly;
+    pointer-events: none;
+    z-index: 5;
+    padding: 0 10px;
+}
+
+.light-strand {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 15px;
+    background-image: radial-gradient(ellipse at top, transparent 60%, #334155 60%, #334155 65%, transparent 65%);
+    background-size: 60px 30px;
+    background-repeat: repeat-x;
+    background-position: center top;
+}
+
+.light-bulb {
+    position: relative;
+    width: 14px;
+    height: 28px;
+    border-radius: 50%;
+    margin-top: 10px;
+    z-index: 2;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+.light-bulb::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 6px;
+    background: #1e293b;
+    border-radius: 2px;
+}
+
+.cyan {
+    background: #22d3ee;
+    box-shadow: 0 0 10px #22d3ee;
+    animation-name: flash-cyan;
+}
+.pink {
+    background: #f472b6;
+    box-shadow: 0 0 10px #f472b6;
+    animation-name: flash-pink;
+    animation-delay: 0.5s;
+}
+.green {
+    background: #4ade80;
+    box-shadow: 0 0 10px #4ade80;
+    animation-name: flash-green;
+    animation-delay: 1s;
+}
+
+@keyframes flash-cyan {
+    from { opacity: 0.6; box-shadow: 0 0 5px #22d3ee; }
+    to { opacity: 1; box-shadow: 0 0 20px #22d3ee; }
+}
+@keyframes flash-pink {
+    from { opacity: 0.6; box-shadow: 0 0 5px #f472b6; }
+    to { opacity: 1; box-shadow: 0 0 20px #f472b6; }
+}
+@keyframes flash-green {
+    from { opacity: 0.6; box-shadow: 0 0 5px #4ade80; }
+    to { opacity: 1; box-shadow: 0 0 20px #4ade80; }
+}`;
 
         const initialJs = `console.log("Welcome to Ebi code!");
 const x = 100;
-console.log("Value: " + (x * 3));`;
+console.log("Value: " + (x * 3));
+console.log("Enjoy the holiday lights!");`;
         
         const initialMd = `# Ebi Code Notes
 - Write your ideas here.
@@ -316,6 +422,8 @@ console.log("Value: " + (x * 3));`;
                 copyAll: "全コードコピー",
                 selectAll: "全選択",
                 clear: "クリア",
+                clearAllEditor: "全クリア",
+                clearWarning: "警告: HTML, CSS, JS, Markdownのすべてのコードが消去されます。よろしいですか？",
                 run: "実行",
                 previewToggleON: "プレビュー: ON",
                 previewToggleOFF: "プレビュー: OFF",
@@ -355,6 +463,8 @@ console.log("Value: " + (x * 3));`;
                 copyAll: "Copy All Code",
                 selectAll: "Select All",
                 clear: "Clear",
+                clearAllEditor: "Clear All",
+                clearWarning: "Warning: This will clear ALL code in HTML, CSS, JS, and Markdown. Are you sure?",
                 run: "Run",
                 previewToggleON: "Preview: ON",
                 previewToggleOFF: "Preview: OFF",
@@ -503,12 +613,21 @@ console.log("Value: " + (x * 3));`;
             document.getElementById('console-output').innerHTML = '';
         }
 
+        function clearAllCodeWithWarning() {
+            if (confirm(getTranslation('clearWarning'))) {
+                cmHtml.setValue('');
+                cmCss.setValue('');
+                cmJs.setValue('');
+                cmMd.setValue('');
+                updatePreview();
+            }
+        }
+
         function getWebCombinedContent() {
             let html = cmHtml.getValue();
             let css = cmCss.getValue();
             let js = cmJs.getValue();
             
-            // Console interceptor for preview/combined only
             const consoleScript = `
                 <script>
                     (function(){
@@ -588,7 +707,6 @@ console.log("Value: " + (x * 3));`;
         }
 
         function transferCode() {
-            // For encryption, always use combined if in web mode, else raw
             if(['html','css','js'].includes(activeFile)) {
                  document.getElementById('encryptSource').value = getWebCombinedContent();
             } else {
@@ -617,12 +735,10 @@ console.log("Value: " + (x * 3));`;
             let src, filename, mime;
 
             if (combined && ['html','css','js'].includes(activeFile)) {
-                // Combined HTML download
                 src = getWebCombinedContent().replace(/<script>\s*\(function\(\)\{.*?\}\)\(\);\s*<\/script>/s, '');
                 filename = 'index.html';
                 mime = 'text/html';
             } else {
-                // Raw download per tab
                 src = getCurrentRawContent();
                 if(activeFile === 'html') { filename = 'index.html'; mime = 'text/html'; }
                 else if(activeFile === 'css') { filename = 'style.css'; mime = 'text/css'; }
@@ -642,7 +758,6 @@ console.log("Value: " + (x * 3));`;
 
             if (h.trim()) {
                  let html = h;
-                 // Add links if missing
                  if (c.trim() && !html.includes('style.css')) html = html.replace('</head>', '<link rel="stylesheet" href="style.css">\n</head>');
                  if (j.trim() && !html.includes('script.js')) html = html.replace('</body>', '<script src="script.js"><\/script>\n</body>');
                  zip.file("index.html", html);
