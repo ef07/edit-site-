@@ -63,6 +63,9 @@
         .console-error { color: #ef4444; }
         .console-warn { color: #f59e0b; }
         .console-info { color: #3b82f6; }
+
+        :fullscreen { background-color: #ffffff; width: 100vw; height: 100vh; }
+        ::backdrop { background-color: #000; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
@@ -100,17 +103,24 @@
                 <div class="bg-slate-900 px-4 py-2 flex justify-between items-center text-xs text-slate-400 border-b border-slate-700 h-10 flex-none relative z-20">
                     <div class="flex items-center">
                         <span data-i18n="sourceCodeTitle"><i class="fas fa-file-code mr-1"></i> Source Code</span>
-                        <button onclick="runCode()" class="ml-3 bg-green-600 hover:bg-green-500 text-white px-2 py-0.5 rounded flex items-center gap-1 transition-colors text-[10px] font-bold shadow">
-                            <i class="fas fa-play"></i> <span data-i18n="run">実行</span>
-                        </button>
-                        <button onclick="clearAllCodeWithWarning()" class="ml-2 bg-slate-700 hover:bg-red-900 text-slate-300 hover:text-red-200 px-2 py-0.5 rounded flex items-center gap-1 transition-colors text-[10px] font-bold shadow border border-slate-600 hover:border-red-800" title="Clear All">
-                            <i class="fas fa-trash-alt"></i> <span data-i18n="clearAllEditor">全クリア</span>
-                        </button>
+                        <div class="flex items-center gap-2 ml-3">
+                            <button onclick="runCode()" class="bg-green-600 hover:bg-green-500 text-white px-2 py-0.5 rounded flex items-center gap-1 transition-colors text-[10px] font-bold shadow">
+                                <i class="fas fa-play"></i> <span data-i18n="run">実行</span>
+                            </button>
+                            <button onclick="clearAllCodeWithWarning()" class="bg-slate-700 hover:bg-red-900 text-slate-300 hover:text-red-200 px-2 py-0.5 rounded flex items-center gap-1 transition-colors text-[10px] font-bold shadow border border-slate-600 hover:border-red-800" title="Clear All">
+                                <i class="fas fa-trash-alt"></i> <span data-i18n="clearAllEditor">全クリア</span>
+                            </button>
+                        </div>
                     </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <label class="bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded cursor-pointer transition flex items-center gap-1 text-[10px] font-bold shadow">
+                            <i class="fas fa-folder-open"></i> <span data-i18n="importFile">ファイル読込</span>
+                            <input type="file" id="editorFileInput" class="hidden" accept=".html,.htm,.txt,.js,.css,.md">
+                        </label>
+                    </div>
+
                     <div class="flex space-x-2 items-center">
-                        <button onclick="copyCombinedToClipboard()" class="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors">
-                            <i class="fas fa-clipboard"></i> <span data-i18n="copyAll">全コードコピー</span>
-                        </button>
                         <div class="relative">
                             <button onclick="toggleSaveMenu()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded flex items-center gap-2 transition-colors">
                                 <i class="fas fa-download"></i> <span data-i18n="saveMenu">保存</span> <i class="fas fa-chevron-down text-[10px]"></i>
@@ -127,8 +137,8 @@
                                 </button>
                             </div>
                         </div>
-                        <button onclick="togglePreview()" id="previewToggleBtn" class="bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors">
-                            <i class="fas fa-columns"></i> <span id="previewToggleText" data-i18n="previewToggleON">プレビュー: ON</span>
+                        <button onclick="togglePreview()" id="previewToggleBtn" class="bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors" title="プレビュー切り替え">
+                            <i class="fas fa-columns"></i>
                         </button>
                     </div>
                 </div>
@@ -150,12 +160,17 @@
 
             <div id="preview-container" class="w-full md:w-1/2 flex flex-col bg-slate-900 h-1/2 md:h-full transition-all duration-300 border-l border-slate-700">
                 
-                <div class="h-[60%] flex flex-col bg-white relative">
+                <div class="h-[60%] flex flex-col bg-white relative" id="preview-wrapper">
                     <div class="bg-slate-100 px-4 py-2 flex justify-between items-center border-b border-gray-200 text-gray-600 h-10 flex-none">
                         <span class="text-xs font-bold" data-i18n="previewTitle"><i class="fas fa-desktop mr-1"></i> プレビュー</span>
-                        <button onclick="transferCode()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded transition shadow flex items-center gap-1">
-                            <span data-i18n="toEncryptScreen">暗号化画面へ</span> <i class="fas fa-arrow-right"></i>
-                        </button>
+                        <div class="flex items-center gap-2">
+                             <button onclick="toggleFullScreen()" class="bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded transition shadow flex items-center gap-1" title="Full Screen">
+                                <i class="fas fa-expand"></i> <span data-i18n="fullScreen">全画面</span>
+                            </button>
+                            <button onclick="transferCode()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded transition shadow flex items-center gap-1">
+                                <span data-i18n="toEncryptScreen">暗号化画面へ</span> <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </div>
                     <iframe id="previewFrame" class="w-full h-full border-none bg-white"></iframe>
                 </div>
@@ -425,6 +440,8 @@ console.log("Enjoy the holiday lights!");`;
                 clearAllEditor: "全クリア",
                 clearWarning: "警告: HTML, CSS, JS, Markdownのすべてのコードが消去されます。よろしいですか？",
                 run: "実行",
+                importFile: "ファイル読込",
+                fullScreen: "全画面",
                 previewToggleON: "プレビュー: ON",
                 previewToggleOFF: "プレビュー: OFF",
                 settingsPanel: "設定パネル",
@@ -466,6 +483,8 @@ console.log("Enjoy the holiday lights!");`;
                 clearAllEditor: "Clear All",
                 clearWarning: "Warning: This will clear ALL code in HTML, CSS, JS, and Markdown. Are you sure?",
                 run: "Run",
+                importFile: "Import",
+                fullScreen: "Full Screen",
                 previewToggleON: "Preview: ON",
                 previewToggleOFF: "Preview: OFF",
                 settingsPanel: "Settings Panel",
@@ -522,6 +541,7 @@ console.log("Enjoy the holiday lights!");`;
             updateUI(savedLang);
 
             document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+            document.getElementById('editorFileInput').addEventListener('change', handleEditorFileUpload);
             
             window.onclick = function(event) {
                 if (!event.target.closest('.relative')) {
@@ -581,10 +601,31 @@ console.log("Enjoy the holiday lights!");`;
                 isPreviewVisible = true;
                 updatePreview();
             }
-            document.getElementById('previewToggleText').textContent = isPreviewVisible ? getTranslation('previewToggleON') : getTranslation('previewToggleOFF');
+            // Fix: Check if element exists before accessing textContent
+            const toggleText = document.getElementById('previewToggleText');
+            if(toggleText) {
+                 toggleText.textContent = isPreviewVisible ? getTranslation('previewToggleON') : getTranslation('previewToggleOFF');
+            }
+             // Also update button title if it exists
+            const toggleBtn = document.getElementById('previewToggleBtn');
+            if(toggleBtn) {
+                 toggleBtn.title = isPreviewVisible ? getTranslation('previewToggleON') : getTranslation('previewToggleOFF');
+            }
+            
             setTimeout(() => {
                 switchFile(activeFile);
             }, 300);
+        }
+
+        function toggleFullScreen() {
+            const elem = document.getElementById('preview-wrapper');
+            if (!document.fullscreenElement) {
+                elem.requestFullscreen().catch(err => {
+                    alert(`Error attempting to enable full-screen mode: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
         }
 
         function toggleSaveMenu() {
@@ -797,6 +838,59 @@ console.log("Enjoy the holiday lights!");`;
             e.target.value = '';
         }
 
+        function handleEditorFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const content = evt.target.result;
+                const ext = file.name.split('.').pop().toLowerCase();
+
+                if (ext === 'html' || ext === 'htm') {
+                    // Try to parse combined HTML
+                    const cssMatch = content.match(/<style>([\s\S]*?)<\/style>/i);
+                    const jsMatch = content.match(/<script>([\s\S]*?)<\/script>/i);
+                    
+                    let htmlContent = content;
+                    
+                    if (cssMatch) {
+                        cmCss.setValue(cssMatch[1].trim());
+                        htmlContent = htmlContent.replace(cssMatch[0], '');
+                    }
+                    if (jsMatch) {
+                        // Avoid deleting the console interceptor if it exists (though imported files usually don't have it unless generated by this tool)
+                        // If generated by this tool, the interceptor is injected dynamically, but users might save the raw preview.
+                        // We'll just extract the first script block found or complex parsing.
+                        // For simplicity, extract all scripts and concat them, or just the last one?
+                        // Let's assume the user's custom JS is in one block or multiple.
+                        // Simple approach: Extract all JS.
+                        const scripts = [...content.matchAll(/<script>([\s\S]*?)<\/script>/gi)];
+                        let jsContent = "";
+                        scripts.forEach(match => {
+                             if(!match[1].includes('console.log = function')) { // skip interceptor-like scripts if present
+                                jsContent += match[1].trim() + "\n";
+                                htmlContent = htmlContent.replace(match[0], '');
+                             }
+                        });
+                        if(jsContent) cmJs.setValue(jsContent);
+                    }
+                    
+                    cmHtml.setValue(htmlContent.trim());
+                    switchFile('html');
+                }
+                else if (ext === 'css') { cmCss.setValue(content); switchFile('css'); }
+                else if (ext === 'js') { cmJs.setValue(content); switchFile('js'); }
+                else if (ext === 'md') { cmMd.setValue(content); switchFile('md'); }
+                else { cmHtml.setValue(content); switchFile('html'); }
+                
+                alert(file.name + " を読み込みました");
+                updatePreview();
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        }
+
         function manipulateSource(action) {
             const el = document.getElementById('encryptSource');
             if (action === 'clear') {
@@ -832,7 +926,17 @@ console.log("Enjoy the holiday lights!");`;
             });
             document.getElementById('header-title').textContent = "Ebi code";
             document.getElementById('output-instruction').innerHTML = getTranslation('outputInstruction');
-            document.getElementById('previewToggleText').textContent = isPreviewVisible ? getTranslation('previewToggleON') : getTranslation('previewToggleOFF');
+            
+            // Fix: Check if element exists before accessing textContent
+            const toggleText = document.getElementById('previewToggleText');
+            if(toggleText) {
+                toggleText.textContent = isPreviewVisible ? getTranslation('previewToggleON') : getTranslation('previewToggleOFF');
+            }
+             // Also update button title if it exists
+            const toggleBtn = document.getElementById('previewToggleBtn');
+            if(toggleBtn) {
+                 toggleBtn.title = isPreviewVisible ? getTranslation('previewToggleON') : getTranslation('previewToggleOFF');
+            }
         }
 
         function updateSettingsUI() {
